@@ -1,0 +1,103 @@
+syntax = "proto3";
+//protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/twitter.proto
+
+option go_package = "twitter/backend/rpc";
+
+// Database service definition.
+service Twitter {
+  // Handles join requests for a new node
+  rpc HandleJoin (JoinRaftRequest) returns (JoinRaftReply) {}
+
+  // Creates a new user
+  rpc CreateUser (User) returns (UserReply) {}
+
+  // Returns authentication for a given username and password
+  rpc LoginUser (User) returns (UserReply) {}
+
+  // Creates a new tweet authored by a given user with the given content
+  rpc CreateTweet (Tweet) returns (TweetReply) {}
+
+  // Allows a user to add another user to their list of followers
+  rpc FollowUser (Follow) returns (FollowReply) {}
+
+  // Allows a user to remove a user from their list of followers
+  rpc UnfollowUser (Follow) returns (FollowReply) {}
+
+  // Returns user info for a given user
+  rpc GetUser (User) returns (UserReply) {}
+
+  // Returns a list of users
+  rpc GetUsers (User) returns (UserReply) {}
+
+  // Returns tweets authored by a given user
+  rpc GetTweetsByUser (User) returns (TweetReply) {}
+
+  // Returns tweets authored by those users followed by a given user
+  rpc GetFeedByUser (User) returns (TweetReply) {}
+
+  // Returns a list of people that follow a given user
+  rpc GetFollowedByUser (User) returns (UserReply) {}
+
+  // Returns the list of users that a given user follows
+  rpc GetFollowingByUser (User) returns (UserReply) {}
+}
+
+message User {
+  string id = 1;
+  string password = 2;
+  string fullname = 3;
+  string bio = 4;
+  string handle = 5;
+  string created_at = 6;
+}
+
+message UserReply {
+  repeated User user = 1;
+  bool success = 2;
+}
+
+message Follow {
+  string followerId = 1;
+  string followedId = 2;
+}
+
+message FollowReply {
+  bool success = 1;
+}
+
+message Tweet {
+  string id = 1;
+  string created_at = 2;
+  string content = 3;
+  string authorId = 4;
+  string authorName= 5;
+  string authorHandle = 6;
+}
+
+message TweetReply {
+  repeated Tweet tweet = 1;
+  bool success = 2;
+}
+
+message JoinRaftRequest {
+  string peer_address = 1;
+}
+
+message JoinRaftReply {
+  bool success = 1;
+}
+
+message CreateUserReply {
+  bool success = 1;
+}
+
+message GetUserReply {
+  bool success = 1;
+  string full_name = 2;
+  string handle = 3;
+  string bio = 4;
+}
+
+
+
+

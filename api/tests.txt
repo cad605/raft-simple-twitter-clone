@@ -1,0 +1,40 @@
+
+// Create a new user
+curl -d '{"Password": "my_password","Fullname": "admin","Handle": "@admin","Bio": "I created this system"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
+curl -d '{"Password": "my_password","Fullname": "newUser","Handle": "@newUser","Bio": "Ive just joined"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
+curl -d '{"Password": "my_password","Fullname": "yetAnotherUser","Handle": "@yetAnotherUser","Bio": "new kid on the block"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
+
+// Create some tweets
+curl -d '{"Content": "This is the content","AuthorId": "1","AuthorName": "admin","AuthorHandle": "@admin"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createTweet
+curl -d '{"Content": "Im a new user. Woohoo","AuthorId": "2","AuthorName": "newUser","AuthorHandle": "@newUser"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createTweet
+curl -d '{"Content": "My first tweet","AuthorId": "3","AuthorName": "yetAnotherUser","AuthorHandle": "@yetAnotherUser"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createTweet
+
+// Get Users
+curl http://localhost:8080/api/v1/getUsers
+
+// Get User
+curl http://localhost:8080/api/v1/getUser/2
+
+//Get User tweets
+curl http://localhost:8080/api/v1/getTweetsByUser/2
+
+// Follow a user
+curl -d '{"FollowerId": "1","FollowedId": "2"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/followUser
+curl -d '{"FollowerId": "1","FollowedId": "3"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/followUser
+
+// Unfollow a user
+curl -d '{"FollowerId": "1","FollowedId": "3"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/unfollowUser
+
+// Get User feed
+curl http://localhost:8080/api/v1/getFeedByUser/1
+
+// Get users followed by user
+curl http://localhost:8080/api/v1/getFollowedByUser/1
+
+
+
+
+
+
+
+
