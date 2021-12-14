@@ -48,7 +48,7 @@ func (s *twitterServer) HandleJoin(ctx context.Context, req *pb.JoinRaftRequest)
 func (s *twitterServer) CreateUser(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
 
 	event := &concensus.Event{
-		Type:           "CreateUser",
+		Type: "CreateUser",
 		NewUserRequest: req,
 	}
 
@@ -63,17 +63,17 @@ func (s *twitterServer) CreateUser(ctx context.Context, req *pb.User) (*pb.UserR
 		return &pb.UserReply{Success: false}, nil
 	}
 
-	s.logger.Info().Str("event.createUser", "success").Msg("New user created.")
+	s.logger.Info().Str("event.createUser", "success").Msg("New user created")
 	return &pb.UserReply{Success: true}, nil
 }
 
-func (s *twitterServer) Login(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+func (s *twitterServer) LoginUser(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.UserReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -83,10 +83,10 @@ func (s *twitterServer) Login(ctx context.Context, req *pb.User) (*pb.UserReply,
 		}
 	}(conn)
 
-	res, err := s.node.FSM.DB.Login(conn, req)
+	res, err := s.node.FSM.DB.LoginUser(conn, req)
 
 	if err != nil {
-		return &pb.UserReply{Success: false}, err
+		return &pb.UserReply{}, err
 	}
 
 	s.logger.Info().Str("event.login", "success").Msg("Logged in user.")

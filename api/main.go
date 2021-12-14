@@ -13,12 +13,14 @@ var serverAddr = [3]string{"127.0.0.1:8000", "127.0.0.1:8001", "127.0.0.1:8002"}
 
 func main() {
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 	rg := router.Group("api/v1/")
 	{
 		rg.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "Pong")
 		})
 		rg.POST("/createUser", postNewUser)
+		rg.POST("/login", postNewLogin)
 		rg.POST("/createTweet", postNewTweet)
 		rg.POST("/followUser", postNewFollow)
 		rg.POST("/unfollowUser", postNewUnfollow)
@@ -33,6 +35,23 @@ func main() {
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("could not run server: %v", err)
 		return
+	}
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
 	}
 }
 
@@ -60,7 +79,45 @@ func postNewUser(c *gin.Context) {
 		})
 		return
 	}
+
 	res, e := client.CreateUser(context.Background(), &newUser)
+
+	if e != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		log.Fatalf("Failed to create new user: %v", e)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": res})
+	return
+}
+
+func postNewLogin(c *gin.Context) {
+	var opts []grpc.DialOption
+	var conn *grpc.ClientConn
+	var err error
+	opts = append(opts, grpc.WithInsecure())
+	index := 0
+	for {
+		conn, err = grpc.Dial(serverAddr[index], opts...)
+		if err != nil || index == len(serverAddr) {
+			index++
+			log.Fatalf("fail to dial: %v", err)
+		} else {
+			break
+		}
+	}
+	defer conn.Close()
+	client := pb.NewTwitterClient(conn)
+	var newUser pb.User
+	if err := c.BindJSON(&newUser); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	res, e := client.LoginUser(context.Background(), &newUser)
 
 	if e != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

@@ -107,7 +107,7 @@ func CreateTables(db *sql.DB) error {
 // CreateUser creates a new user profile
 func (db *DB) CreateUser(conn *sql.Conn, newUser *pb.User) (res interface{}, err error) {
 	sqlStatement := `
-		INSERT OR REPLACE INTO user(
+		INSERT INTO user (
 			name,
 			password,
 			bio,
@@ -120,6 +120,7 @@ func (db *DB) CreateUser(conn *sql.Conn, newUser *pb.User) (res interface{}, err
 		return nil, err
 	}
 	defer statement.Close()
+
 	res, err = statement.Exec(newUser.Fullname, newUser.Password, newUser.Bio, newUser.Handle)
 	if err != nil {
 		return nil, err
@@ -128,7 +129,7 @@ func (db *DB) CreateUser(conn *sql.Conn, newUser *pb.User) (res interface{}, err
 	return res, nil
 }
 
-func (db *DB) Login(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
+func (db *DB) LoginUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
 	sqlStatement := `
 		SELECT * FROM user
 		WHERE name = ? AND password = ?
@@ -139,19 +140,19 @@ func (db *DB) Login(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
 		return nil, err
 	}
 	defer statement.Close()
+
 	rows, err := statement.Query(user.Fullname, user.Password)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 	for rows.Next() {
-		var user *pb.User
-		err = rows.Scan(&user.Id, &user.Password, &user.Fullname, &user.Bio, &user.Handle, &user.CreatedAt)
+		var user pb.User
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, user)
+		res = append(res, &user)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -247,7 +248,7 @@ func (db *DB) GetUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error)
 	defer rows.Close()
 	for rows.Next() {
 		var user pb.User
-		err = rows.Scan(&user.Id, &user.Password, &user.Fullname, &user.Bio, &user.Handle, &user.CreatedAt)
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -279,7 +280,7 @@ func (db *DB) GetUsers(conn *sql.Conn) (res []*pb.User, err error) {
 	defer rows.Close()
 	for rows.Next() {
 		var user pb.User
-		err = rows.Scan(&user.Id, &user.Password, &user.Fullname, &user.Bio, &user.Handle, &user.CreatedAt)
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
 		if err != nil {
 			return nil, err
 		}

@@ -44,8 +44,8 @@ service Twitter {
 
 message User {
   string id = 1;
-  string password = 2;
-  string fullname = 3;
+  string fullname = 2;
+  string password = 3;
   string bio = 4;
   string handle = 5;
   string created_at = 6;
