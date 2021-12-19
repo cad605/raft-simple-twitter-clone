@@ -2,6 +2,10 @@
 
 This is a simple Twitter clone that implements its distributed SQLite database using Hashicorp's implmentation of Raft.
 
+> SQLite implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world. SQLite is built into all mobile phones and most computers and comes bundled inside countless other applications that people use every day.
+
+But it isn't distributed! That's where Raft comes in...
+
 ## Architecture Overview
 ![Overview of the project architecture](TwitterArchitecture.png)
 
@@ -76,7 +80,7 @@ To run a three node cluser:
 1. `cd backend`
 2. `go build`
 3. For the first node: `./backend --http-port=8000 --raft-port=7000 --bootstrap`
-4. For second node: `backend --http-port=8001 --raft-port=7001 --join="127.0.0.1:8000"`
-5. For third node: `backend --http-port=8002 --raft-port=7002 --join="127.0.0.1:8000"`
+4. For second node: `./backend --http-port=8001 --raft-port=7001 --join="127.0.0.1:8000"`
+5. For third node: `./backend --http-port=8002 --raft-port=7002 --join="127.0.0.1:8000"`
 
 For subsequent nodes and other options: `backend [--data-dir=?] [--http-port=?] [--raft-port=?] [--join="?"]`
