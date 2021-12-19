@@ -18,7 +18,7 @@ But it isn't distributed! That's where Raft comes in...
 
 1. Hashicorp's Raft implementation - [hashicorp/raft] (https://github.com/hashicorp/raft)
 2. The gin web server framework - [gin-gonic/gin] (https://github.com/gin-gonic/gin)
-3. SQLite - [mattn/go-sqlite3] (https://github.com/mattn/go-sqlite3)
+3. SQLite - [rqlite/go-sqlite3] (https://github.com/rqlite/go-sqlite3)
 4. gRPC - [grpc/grpc-go] (https://github.com/grpc/grpc-go)
 
 ## Setup

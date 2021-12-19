@@ -72,7 +72,7 @@ func (fsm *FSM) Restore(rc io.ReadCloser) error {
 	}
 
 	if err := fsm.DB.RwDB.Close(); err != nil {
-		fmt.Errorf("failed to close pre-restore backend: %s")
+		fmt.Errorf("failed to close pre-restore backend")
 	}
 
 	var db *DB
