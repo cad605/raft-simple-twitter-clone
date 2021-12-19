@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import ErrorFallback from "../components/Error";
+import ErrorFallback from "../components/ErrorFallback";
 import List from "../components/List";
 import axios from "axios";
+import { useAuth } from "../context/auth-context";
 import UserListItem from "../components/UserListItem";
 
+/**
+ * People the user follows
+ * @returns 
+ */
 export default function UserFollowing() {
-  const API = "http://localhost:8080/api/v1/getFollowedByUser/1";
+  const { user } = useAuth();
+  const API = "http://localhost:8080/api/v1/getFollowedByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -31,6 +37,44 @@ export default function UserFollowing() {
       })
     );
   }
+
+  async function handleUnFollow(userListItem) {
+    const url = "http://localhost:8080/api/v1";
+    const endpoint = "unfollowUser";
+
+    const config = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    };
+
+    const data = {
+      FollowerID: user["id"],
+      FollowedID: userListItem["id"],
+    };
+
+    return axios
+      .post(`${url}/${endpoint}`, JSON.stringify(data), config)
+      .then((response) => {
+        if (response) {
+          setState({ ...state, status: "pending" });
+          queryDatabase().then(
+            (results) => {
+              setState({ ...state, status: "resolved", results });
+            },
+            (error) => {
+              setState({ ...state, status: "rejected", error });
+            }
+          );
+          return response.data;
+        } else {
+          const error = {
+            message: response?.errors?.map((e) => e.message).join("\n"),
+          };
+          return Promise.reject(error);
+        }
+      });
+  }
+
   useEffect(() => {
     setState({ ...state, status: "pending" });
     queryDatabase().then(
@@ -52,11 +96,20 @@ export default function UserFollowing() {
     return (
       <>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <List>
-            {results.map((user) => (
-              <UserListItem key={user["id"]} user={user} />
-            ))}
-          </List>
+          {results && results.length > 0 ? (
+            <List>
+              {results.map((listItem) => (
+                <UserListItem
+                  key={listItem["id"]}
+                  user={listItem}
+                  isFollow={true}
+                  handleClick={handleUnFollow}
+                />
+              ))}
+            </List>
+          ) : (
+            <ErrorFallback></ErrorFallback>
+          )}
         </ErrorBoundary>
       </>
     );

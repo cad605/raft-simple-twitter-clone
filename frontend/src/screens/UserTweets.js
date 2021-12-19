@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorFallback from "../components/ErrorFallback";
 import List from "../components/List";
 import FeedListItem from "../components/FeedListItem";
 import axios from "axios";
-
+import { useAuth } from "../context/auth-context";
 
 export default function UserTweets() {
-  const API = "http://localhost:8080/api/v1/getTweetsByUser/1";
+  const { user } = useAuth();
+  const API = "http://localhost:8080/api/v1/getTweetsByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -50,11 +53,17 @@ export default function UserTweets() {
   } else if (status === "resolved") {
     return (
       <>
-          <List>
-            {results.map((tweet) => (
-              <FeedListItem key={tweet["id"]} tweet={tweet} />
-            ))}
-          </List>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          {results && results.length > 0 ? (
+            <List>
+              {results.map((tweet) => (
+                <FeedListItem key={tweet["id"]} tweet={tweet} />
+              ))}
+            </List>
+          ) : (
+            <ErrorFallback></ErrorFallback>
+          )}
+        </ErrorBoundary>
       </>
     );
   }

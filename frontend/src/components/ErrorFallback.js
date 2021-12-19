@@ -1,9 +1,9 @@
-function ErrorFallback({error, resetErrorBoundary}) {
-    return (
-      <div role="alert">
-        There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-        <button onClick={resetErrorBoundary}>Try again</button>
-      </div>
-    )
-  }
+
+export default function ErrorFallback({error, resetErrorBoundary}) {
+  return (
+    <div className="flex p-4 justify-center">
+      <p className="text-lg font-semibold text-gray-500">Nothing to see here...</p>
+      {/* <pre>{error.message}</pre> */}
+    </div>
+  )
+}

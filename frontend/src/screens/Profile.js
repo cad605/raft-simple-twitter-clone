@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import ErrorFallback from "../components/Error";
+import ErrorFallback from "../components/ErrorFallback";
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from "@reach/tabs";
 import axios from "axios";
 import UserTweets from "./UserTweets";
 import UserFollowers from "./UserFollowers";
 import UserFollowing from "./UserFollowing";
+import { useAuth } from '../context/auth-context'
 
 export default function Profile() {
-  const API = "http://localhost:8080/api/v1/getUser/1";
+  const {user} = useAuth()
+  const API = "http://localhost:8080/api/v1/getUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -67,7 +69,7 @@ export default function Profile() {
         </div>
         <div className="bg-white container min-h-fit pb-4 border-b">
           <div className="h-full py-4 px-4">
-            <div className="font-bold text-xl">{results["fullname"]}</div>
+            <div className="font-semibold text-lg">{results["fullname"]}</div>
             <div className="flex-none w-full mt-2 font-normal">
               <div className="text-base font-normal text-gray-500">
                 {results["handle"]}

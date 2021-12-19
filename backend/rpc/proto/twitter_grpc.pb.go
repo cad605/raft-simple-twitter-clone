@@ -42,6 +42,7 @@ type TwitterClient interface {
 	GetFollowedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
 	// Returns the list of users that a given user follows
 	GetFollowingByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
+	GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
 }
 
 type twitterClient struct {
@@ -160,6 +161,15 @@ func (c *twitterClient) GetFollowingByUser(ctx context.Context, in *User, opts .
 	return out, nil
 }
 
+func (c *twitterClient) GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error) {
+	out := new(UserReply)
+	err := c.cc.Invoke(ctx, "/Twitter/GetUsersNotFollowed", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TwitterServer is the server API for Twitter service.
 // All implementations must embed UnimplementedTwitterServer
 // for forward compatibility
@@ -188,6 +198,7 @@ type TwitterServer interface {
 	GetFollowedByUser(context.Context, *User) (*UserReply, error)
 	// Returns the list of users that a given user follows
 	GetFollowingByUser(context.Context, *User) (*UserReply, error)
+	GetUsersNotFollowed(context.Context, *User) (*UserReply, error)
 	mustEmbedUnimplementedTwitterServer()
 }
 
@@ -230,6 +241,9 @@ func (UnimplementedTwitterServer) GetFollowedByUser(context.Context, *User) (*Us
 }
 func (UnimplementedTwitterServer) GetFollowingByUser(context.Context, *User) (*UserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFollowingByUser not implemented")
+}
+func (UnimplementedTwitterServer) GetUsersNotFollowed(context.Context, *User) (*UserReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersNotFollowed not implemented")
 }
 func (UnimplementedTwitterServer) mustEmbedUnimplementedTwitterServer() {}
 
@@ -460,6 +474,24 @@ func _Twitter_GetFollowingByUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Twitter_GetUsersNotFollowed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(User)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TwitterServer).GetUsersNotFollowed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Twitter/GetUsersNotFollowed",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TwitterServer).GetUsersNotFollowed(ctx, req.(*User))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Twitter_ServiceDesc is the grpc.ServiceDesc for Twitter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -514,6 +546,10 @@ var Twitter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFollowingByUser",
 			Handler:    _Twitter_GetFollowingByUser_Handler,
+		},
+		{
+			MethodName: "GetUsersNotFollowed",
+			Handler:    _Twitter_GetUsersNotFollowed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

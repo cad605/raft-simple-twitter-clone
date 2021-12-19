@@ -40,6 +40,8 @@ service Twitter {
 
   // Returns the list of users that a given user follows
   rpc GetFollowingByUser (User) returns (UserReply) {}
+
+  rpc GetUsersNotFollowed(User) returns (UserReply) {}
 }
 
 message User {

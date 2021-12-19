@@ -1,9 +1,9 @@
 
 // Create a new user
-curl -d '{"fullname": "admin","password": "my_password", "handle": "@admin","bio": "Im the admin"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
-curl -d '{"fullname": "Chris","password": "my_password", "handle": "@chrisd","bio": "Ive just joined"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
-curl -d '{"fullname": "Alex", "password": "my_password", "handle": "@alext","bio": "New here"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
-curl -d '{"fullname": "Lucy", "password": "my_password", "handle": "@lucy","bio": "New here"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createUser
+curl -d '{"fullname": "admin","password": "my_password", "handle": "@admin","bio": "Im the admin"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
+curl -d '{"fullname": "Chris","password": "my_password", "handle": "@chrisd","bio": "Ive just joined"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
+curl -d '{"fullname": "Alex", "password": "my_password", "handle": "@alext","bio": "New here"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
+curl -d '{"fullname": "Lucy", "password": "my_password", "handle": "@lucy","bio": "New here"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
 
 // Login
 curl -d '{"Password": "my_password","Fullname": "yetAnotherUser"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/login

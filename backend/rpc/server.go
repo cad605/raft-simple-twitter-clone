@@ -213,6 +213,33 @@ func (s *twitterServer) GetUsers(ctx context.Context, req *pb.User) (*pb.UserRep
 	return &pb.UserReply{User: res, Success: true}, nil
 }
 
+func (s *twitterServer) GetUsersNotFollowed(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+	s.node.FSM.Mutex.Lock()
+	defer s.node.FSM.Mutex.Unlock()
+	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Error opening database connection")
+		return &pb.UserReply{Success: false}, err
+	}
+	defer func(conn *sql.Conn) {
+		err := conn.Close()
+		if err != nil {
+			s.logger.Error().Err(err).Msg("Error closing connection.")
+			return
+		}
+	}(conn)
+
+	res, err := s.node.FSM.DB.GetUsersNotFollowed(conn, req)
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("Error fetching users not followed.")
+		return &pb.UserReply{Success: false}, err
+	}
+
+	s.logger.Info().Str("event.getUsersNotFollowed", "success").Msg("Fetched user successfully")
+	return &pb.UserReply{User: res, Success: true}, nil
+}
+
 func (s *twitterServer) GetTweetsByUser(ctx context.Context, req *pb.User) (*pb.TweetReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()

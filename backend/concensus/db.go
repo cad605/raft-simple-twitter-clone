@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/rqlite/go-sqlite3"
 	"io"
@@ -155,8 +156,13 @@ func (db *DB) LoginUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err erro
 		res = append(res, &user)
 	}
 	err = rows.Err()
+
 	if err != nil {
 		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, errors.New("INCORRECT USERNAME OR PASSWORD")
 	}
 
 	return res, nil
@@ -294,6 +300,38 @@ func (db *DB) GetUsers(conn *sql.Conn) (res []*pb.User, err error) {
 	return res, nil
 }
 
+func (db *DB) GetUsersNotFollowed(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
+	sqlStatement := `
+		SELECT * FROM user WHERE (id IS NOT ?) AND id NOT IN (SELECT followed_id FROM follow WHERE follower_id = ?)
+		;`
+
+	statement, err := conn.PrepareContext(context.Background(), sqlStatement) // Prepare SQL Statement
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+	rows, err := statement.Query(user.Id, user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var user pb.User
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, &user)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (db *DB) GetTweetsByUser(conn *sql.Conn, user *pb.User) (res []*pb.Tweet, err error) {
 
 	sqlStatement := `
@@ -372,41 +410,11 @@ func (db *DB) GetFeedByUser(conn *sql.Conn, user *pb.User) (res []*pb.Tweet, err
 	return res, nil
 }
 
+/*
+People the user follows
+ */
 func (db *DB) GetFollowedByUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
 
-	sqlStatement := `
-		SELECT * FROM user
-		WHERE id IN (SELECT follower_id FROM follow WHERE followed_id = ?)
-		;`
-
-	statement, err := conn.PrepareContext(context.Background(), sqlStatement) // Prepare SQL Statement
-	if err != nil {
-		return nil, err
-	}
-	defer statement.Close()
-	rows, err := statement.Query(user.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-	for rows.Next() {
-		var user pb.User
-		err = rows.Scan(&user.Id, &user.Password, &user.Fullname, &user.Bio, &user.Handle, &user.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, &user)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (db *DB) GetFollowingByUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
 	sqlStatement := `
 		SELECT * FROM user
 		WHERE id IN (SELECT followed_id FROM follow WHERE follower_id = ?)
@@ -425,7 +433,43 @@ func (db *DB) GetFollowingByUser(conn *sql.Conn, user *pb.User) (res []*pb.User,
 	defer rows.Close()
 	for rows.Next() {
 		var user pb.User
-		err = rows.Scan(&user.Id, &user.Password, &user.Fullname, &user.Bio, &user.Handle, &user.CreatedAt)
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, &user)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+/*
+People that follow the user
+ */
+func (db *DB) GetFollowingByUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
+	sqlStatement := `
+		SELECT * FROM user
+		WHERE id IN (SELECT follower_id FROM follow WHERE followed_id = ?)
+		;`
+
+	statement, err := conn.PrepareContext(context.Background(), sqlStatement) // Prepare SQL Statement
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+	rows, err := statement.Query(user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var user pb.User
+		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
 		if err != nil {
 			return nil, err
 		}

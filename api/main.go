@@ -9,7 +9,7 @@ import (
 	pb "simple-twitter.com/backend/rpc/proto"
 )
 
-var serverAddr = [3]string{"127.0.0.1:8000", "127.0.0.1:8001", "127.0.0.1:8002"}
+var serverAddr = [3]string{"127.0.0.1:8001", "127.0.0.1:8002"}
 
 func main() {
 	router := gin.Default()
@@ -19,7 +19,7 @@ func main() {
 		rg.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "Pong")
 		})
-		rg.POST("/createUser", postNewUser)
+		rg.POST("/register", postNewUser)
 		rg.POST("/login", postNewLogin)
 		rg.POST("/createTweet", postNewTweet)
 		rg.POST("/followUser", postNewFollow)
@@ -30,6 +30,7 @@ func main() {
 		rg.GET("/getFollowingByUser/:id", getFollowingByUser)
 		rg.GET("/getUser/:id", getUser)
 		rg.GET("/getUsers", getUsers)
+		rg.GET("/getUsersNotFollowed/:id", getUsersNotFollowed)
 	}
 
 	if err := router.Run(":8080"); err != nil {
@@ -419,6 +420,38 @@ func getUsers(c *gin.Context) {
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
 	res, e := client.GetUsers(context.Background(), &pb.User{})
+
+	if e != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		log.Fatalf("Failed to get following: %v", e)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": res})
+	return
+}
+
+func getUsersNotFollowed(c *gin.Context) {
+	var opts []grpc.DialOption
+	var conn *grpc.ClientConn
+	var err error
+	opts = append(opts, grpc.WithInsecure())
+	index := 0
+	for {
+		conn, err = grpc.Dial(serverAddr[index], opts...)
+		if err != nil || index == len(serverAddr) {
+			index++
+			log.Fatalf("fail to dial: %v", err)
+		} else {
+			break
+		}
+	}
+	defer conn.Close()
+	client := pb.NewTwitterClient(conn)
+	res, e := client.GetUsersNotFollowed(context.Background(), &pb.User{
+		Id: c.Param("id"),
+	})
 
 	if e != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

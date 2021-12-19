@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import ErrorFallback from "../components/Error";
+import ErrorFallback from "../components/ErrorFallback";
 import List from "../components/List";
 import FeedListItem from "../components/FeedListItem";
-import axios from "axios";
 import ComposeTweet from "../components/ComposeTweet";
+import axios from "axios";
+import { useAuth } from "../context/auth-context";
 
 export default function Feed() {
-  const API = "http://localhost:8080/api/v1/getFeedByUser/1";
+  const { user } = useAuth();
+  const API = "http://localhost:8080/api/v1/getFeedByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -32,6 +34,7 @@ export default function Feed() {
       })
     );
   }
+
   useEffect(() => {
     setState({ ...state, status: "pending" });
     queryDatabase().then(
@@ -59,11 +62,15 @@ export default function Feed() {
         </div>
         <ComposeTweet></ComposeTweet>
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <List>
-            {results.map((tweet) => (
-              <FeedListItem key={tweet["id"]} tweet={tweet} />
-            ))}
-          </List>
+          {results && results.length > 0 ? (
+            <List>
+              {results.map((tweet) => (
+                <FeedListItem key={tweet["id"]} tweet={tweet} />
+              ))}
+            </List>
+          ) : (
+            <ErrorFallback></ErrorFallback>
+          )}
         </ErrorBoundary>
       </>
     );
