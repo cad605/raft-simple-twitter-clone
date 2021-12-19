@@ -15,7 +15,7 @@ service Twitter {
   rpc LoginUser (User) returns (UserReply) {}
 
   // Creates a new tweet authored by a given user with the given content
-  rpc CreateTweet (Tweet) returns (TweetReply) {}
+  rpc CreateTweet (Tweet) returns (TweetsReply) {}
 
   // Allows a user to add another user to their list of followers
   rpc FollowUser (Follow) returns (FollowReply) {}
@@ -27,22 +27,23 @@ service Twitter {
   rpc GetUser (User) returns (UserReply) {}
 
   // Returns a list of users
-  rpc GetUsers (User) returns (UserReply) {}
+  rpc GetUsers (User) returns (ManyUsersReply) {}
 
   // Returns tweets authored by a given user
-  rpc GetTweetsByUser (User) returns (TweetReply) {}
+  rpc GetTweetsByUser (User) returns (TweetsReply) {}
 
   // Returns tweets authored by those users followed by a given user
-  rpc GetFeedByUser (User) returns (TweetReply) {}
+  rpc GetFeedByUser (User) returns (TweetsReply) {}
 
   // Returns a list of people that follow a given user
-  rpc GetFollowedByUser (User) returns (UserReply) {}
+  rpc GetFollowedByUser (User) returns (ManyUsersReply) {}
 
   // Returns the list of users that a given user follows
-  rpc GetFollowingByUser (User) returns (UserReply) {}
+  rpc GetFollowingByUser (User) returns (ManyUsersReply) {}
 
-  rpc GetUsersNotFollowed(User) returns (UserReply) {}
+  rpc GetUsersNotFollowed(User) returns (ManyUsersReply) {}
 }
+
 
 message User {
   string id = 1;
@@ -54,8 +55,11 @@ message User {
 }
 
 message UserReply {
-  repeated User user = 1;
-  bool success = 2;
+  User user = 1;
+}
+
+message ManyUsersReply {
+  repeated User users = 1;
 }
 
 message Follow {
@@ -76,9 +80,8 @@ message Tweet {
   string authorHandle = 6;
 }
 
-message TweetReply {
+message TweetsReply {
   repeated Tweet tweet = 1;
-  bool success = 2;
 }
 
 message JoinRaftRequest {
@@ -87,17 +90,6 @@ message JoinRaftRequest {
 
 message JoinRaftReply {
   bool success = 1;
-}
-
-message CreateUserReply {
-  bool success = 1;
-}
-
-message GetUserReply {
-  bool success = 1;
-  string full_name = 2;
-  string handle = 3;
-  string bio = 4;
 }
 
 

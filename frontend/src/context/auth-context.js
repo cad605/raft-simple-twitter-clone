@@ -13,7 +13,7 @@ function AuthProvider(props) {
       const userInStorage = await auth.getUserFromLocalStorage();
       console.log(userInStorage)
       if (userInStorage) {
-        setUser(userInStorage["data"]["user"][0]);
+        setUser(userInStorage);
       }
     }
 
@@ -21,7 +21,7 @@ function AuthProvider(props) {
   }, []);
 
   const login = React.useCallback(
-    (form) => auth.login(form).then((user) => setUser(user["data"]["user"][0])),
+    (form) => auth.login(form).then((user) => setUser(user)),
     [setUser]
   );
   
@@ -30,7 +30,7 @@ function AuthProvider(props) {
       auth
         .register(form)
         .then(() =>
-          auth.login(form).then((user) => setUser(user["data"]["user"][0]))
+          auth.login(form).then((user) => setUser(user))
         ),
     [setUser]
   );

@@ -49,7 +49,7 @@ function TweetForm({}) {
         config
       )
       .then((response) => {
-        if (response && response["data"]["data"]["success"]) {
+        if (response) {
           return true;
         } else {
           const error = {

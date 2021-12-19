@@ -25,7 +25,7 @@ type TwitterClient interface {
 	// Returns authentication for a given username and password
 	LoginUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
 	// Creates a new tweet authored by a given user with the given content
-	CreateTweet(ctx context.Context, in *Tweet, opts ...grpc.CallOption) (*TweetReply, error)
+	CreateTweet(ctx context.Context, in *Tweet, opts ...grpc.CallOption) (*TweetsReply, error)
 	// Allows a user to add another user to their list of followers
 	FollowUser(ctx context.Context, in *Follow, opts ...grpc.CallOption) (*FollowReply, error)
 	// Allows a user to remove a user from their list of followers
@@ -33,16 +33,16 @@ type TwitterClient interface {
 	// Returns user info for a given user
 	GetUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
 	// Returns a list of users
-	GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
+	GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error)
 	// Returns tweets authored by a given user
-	GetTweetsByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetReply, error)
+	GetTweetsByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetsReply, error)
 	// Returns tweets authored by those users followed by a given user
-	GetFeedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetReply, error)
+	GetFeedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetsReply, error)
 	// Returns a list of people that follow a given user
-	GetFollowedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
+	GetFollowedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error)
 	// Returns the list of users that a given user follows
-	GetFollowingByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
-	GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error)
+	GetFollowingByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error)
+	GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error)
 }
 
 type twitterClient struct {
@@ -80,8 +80,8 @@ func (c *twitterClient) LoginUser(ctx context.Context, in *User, opts ...grpc.Ca
 	return out, nil
 }
 
-func (c *twitterClient) CreateTweet(ctx context.Context, in *Tweet, opts ...grpc.CallOption) (*TweetReply, error) {
-	out := new(TweetReply)
+func (c *twitterClient) CreateTweet(ctx context.Context, in *Tweet, opts ...grpc.CallOption) (*TweetsReply, error) {
+	out := new(TweetsReply)
 	err := c.cc.Invoke(ctx, "/Twitter/CreateTweet", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -116,8 +116,8 @@ func (c *twitterClient) GetUser(ctx context.Context, in *User, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *twitterClient) GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error) {
-	out := new(UserReply)
+func (c *twitterClient) GetUsers(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error) {
+	out := new(ManyUsersReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetUsers", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -125,8 +125,8 @@ func (c *twitterClient) GetUsers(ctx context.Context, in *User, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *twitterClient) GetTweetsByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetReply, error) {
-	out := new(TweetReply)
+func (c *twitterClient) GetTweetsByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetsReply, error) {
+	out := new(TweetsReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetTweetsByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -134,8 +134,8 @@ func (c *twitterClient) GetTweetsByUser(ctx context.Context, in *User, opts ...g
 	return out, nil
 }
 
-func (c *twitterClient) GetFeedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetReply, error) {
-	out := new(TweetReply)
+func (c *twitterClient) GetFeedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*TweetsReply, error) {
+	out := new(TweetsReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetFeedByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -143,8 +143,8 @@ func (c *twitterClient) GetFeedByUser(ctx context.Context, in *User, opts ...grp
 	return out, nil
 }
 
-func (c *twitterClient) GetFollowedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error) {
-	out := new(UserReply)
+func (c *twitterClient) GetFollowedByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error) {
+	out := new(ManyUsersReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetFollowedByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -152,8 +152,8 @@ func (c *twitterClient) GetFollowedByUser(ctx context.Context, in *User, opts ..
 	return out, nil
 }
 
-func (c *twitterClient) GetFollowingByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error) {
-	out := new(UserReply)
+func (c *twitterClient) GetFollowingByUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error) {
+	out := new(ManyUsersReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetFollowingByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -161,8 +161,8 @@ func (c *twitterClient) GetFollowingByUser(ctx context.Context, in *User, opts .
 	return out, nil
 }
 
-func (c *twitterClient) GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserReply, error) {
-	out := new(UserReply)
+func (c *twitterClient) GetUsersNotFollowed(ctx context.Context, in *User, opts ...grpc.CallOption) (*ManyUsersReply, error) {
+	out := new(ManyUsersReply)
 	err := c.cc.Invoke(ctx, "/Twitter/GetUsersNotFollowed", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ type TwitterServer interface {
 	// Returns authentication for a given username and password
 	LoginUser(context.Context, *User) (*UserReply, error)
 	// Creates a new tweet authored by a given user with the given content
-	CreateTweet(context.Context, *Tweet) (*TweetReply, error)
+	CreateTweet(context.Context, *Tweet) (*TweetsReply, error)
 	// Allows a user to add another user to their list of followers
 	FollowUser(context.Context, *Follow) (*FollowReply, error)
 	// Allows a user to remove a user from their list of followers
@@ -189,16 +189,16 @@ type TwitterServer interface {
 	// Returns user info for a given user
 	GetUser(context.Context, *User) (*UserReply, error)
 	// Returns a list of users
-	GetUsers(context.Context, *User) (*UserReply, error)
+	GetUsers(context.Context, *User) (*ManyUsersReply, error)
 	// Returns tweets authored by a given user
-	GetTweetsByUser(context.Context, *User) (*TweetReply, error)
+	GetTweetsByUser(context.Context, *User) (*TweetsReply, error)
 	// Returns tweets authored by those users followed by a given user
-	GetFeedByUser(context.Context, *User) (*TweetReply, error)
+	GetFeedByUser(context.Context, *User) (*TweetsReply, error)
 	// Returns a list of people that follow a given user
-	GetFollowedByUser(context.Context, *User) (*UserReply, error)
+	GetFollowedByUser(context.Context, *User) (*ManyUsersReply, error)
 	// Returns the list of users that a given user follows
-	GetFollowingByUser(context.Context, *User) (*UserReply, error)
-	GetUsersNotFollowed(context.Context, *User) (*UserReply, error)
+	GetFollowingByUser(context.Context, *User) (*ManyUsersReply, error)
+	GetUsersNotFollowed(context.Context, *User) (*ManyUsersReply, error)
 	mustEmbedUnimplementedTwitterServer()
 }
 
@@ -215,7 +215,7 @@ func (UnimplementedTwitterServer) CreateUser(context.Context, *User) (*UserReply
 func (UnimplementedTwitterServer) LoginUser(context.Context, *User) (*UserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginUser not implemented")
 }
-func (UnimplementedTwitterServer) CreateTweet(context.Context, *Tweet) (*TweetReply, error) {
+func (UnimplementedTwitterServer) CreateTweet(context.Context, *Tweet) (*TweetsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTweet not implemented")
 }
 func (UnimplementedTwitterServer) FollowUser(context.Context, *Follow) (*FollowReply, error) {
@@ -227,22 +227,22 @@ func (UnimplementedTwitterServer) UnfollowUser(context.Context, *Follow) (*Follo
 func (UnimplementedTwitterServer) GetUser(context.Context, *User) (*UserReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedTwitterServer) GetUsers(context.Context, *User) (*UserReply, error) {
+func (UnimplementedTwitterServer) GetUsers(context.Context, *User) (*ManyUsersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
-func (UnimplementedTwitterServer) GetTweetsByUser(context.Context, *User) (*TweetReply, error) {
+func (UnimplementedTwitterServer) GetTweetsByUser(context.Context, *User) (*TweetsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTweetsByUser not implemented")
 }
-func (UnimplementedTwitterServer) GetFeedByUser(context.Context, *User) (*TweetReply, error) {
+func (UnimplementedTwitterServer) GetFeedByUser(context.Context, *User) (*TweetsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeedByUser not implemented")
 }
-func (UnimplementedTwitterServer) GetFollowedByUser(context.Context, *User) (*UserReply, error) {
+func (UnimplementedTwitterServer) GetFollowedByUser(context.Context, *User) (*ManyUsersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFollowedByUser not implemented")
 }
-func (UnimplementedTwitterServer) GetFollowingByUser(context.Context, *User) (*UserReply, error) {
+func (UnimplementedTwitterServer) GetFollowingByUser(context.Context, *User) (*ManyUsersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFollowingByUser not implemented")
 }
-func (UnimplementedTwitterServer) GetUsersNotFollowed(context.Context, *User) (*UserReply, error) {
+func (UnimplementedTwitterServer) GetUsersNotFollowed(context.Context, *User) (*ManyUsersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsersNotFollowed not implemented")
 }
 func (UnimplementedTwitterServer) mustEmbedUnimplementedTwitterServer() {}

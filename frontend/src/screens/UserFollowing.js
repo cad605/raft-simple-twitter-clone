@@ -12,7 +12,6 @@ import UserListItem from "../components/UserListItem";
  */
 export default function UserFollowing() {
   const { user } = useAuth();
-  const API = "http://localhost:8080/api/v1/getFollowedByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -22,20 +21,19 @@ export default function UserFollowing() {
   const { status, results, error } = state;
 
   async function queryDatabase() {
-    const request = axios.get(API);
+    const url = "http://localhost:8080/api/v1";
+    const endpoint = "getFollowedByUser/" + user["id"];
 
-    return axios.all([request]).then(
-      axios.spread(async (...responses) => {
-        if (responses && responses[0]["data"]["data"]["success"]) {
-          return responses[0]["data"]["data"]["user"];
-        } else {
-          const error = {
-            message: responses?.errors?.map((e) => e.message).join("\n"),
-          };
-          return Promise.reject(error);
-        }
-      })
-    );
+    return axios.get(`${url}/${endpoint}`).then((response) => {
+      if (response) {
+        return response.data["users"];
+      } else {
+        const error = {
+          message: response?.errors?.map((e) => e.message).join("\n"),
+        };
+        return Promise.reject(error);
+      }
+    });
   }
 
   async function handleUnFollow(userListItem) {
@@ -102,6 +100,7 @@ export default function UserFollowing() {
                 <UserListItem
                   key={listItem["id"]}
                   user={listItem}
+                  showFollow={true}
                   isFollow={true}
                   handleClick={handleUnFollow}
                 />

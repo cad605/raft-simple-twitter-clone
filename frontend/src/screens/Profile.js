@@ -6,11 +6,10 @@ import axios from "axios";
 import UserTweets from "./UserTweets";
 import UserFollowers from "./UserFollowers";
 import UserFollowing from "./UserFollowing";
-import { useAuth } from '../context/auth-context'
+import { useAuth } from "../context/auth-context";
 
 export default function Profile() {
-  const {user} = useAuth()
-  const API = "http://localhost:8080/api/v1/getUser/" + user["id"];
+  const { user } = useAuth();
 
   const [state, setState] = useState({
     status: "pending",
@@ -27,21 +26,21 @@ export default function Profile() {
   };
 
   async function queryDatabase() {
-    const request = axios.get(API);
+    const url = "http://localhost:8080/api/v1";
+    const endpoint = "getUser/" + user["id"];
 
-    return axios.all([request]).then(
-      axios.spread(async (...responses) => {
-        if (responses && responses[0]["data"]["data"]["success"]) {
-          return responses[0]["data"]["data"]["user"][0];
-        } else {
-          const error = {
-            message: responses?.errors?.map((e) => e.message).join("\n"),
-          };
-          return Promise.reject(error);
-        }
-      })
-    );
+    return axios.get(`${url}/${endpoint}`).then((response) => {
+      if (response) {
+        return response.data["user"];
+      } else {
+        const error = {
+          message: response?.errors?.map((e) => e.message).join("\n"),
+        };
+        return Promise.reject(error);
+      }
+    });
   }
+
   useEffect(() => {
     setState({ ...state, status: "pending" });
     queryDatabase().then(

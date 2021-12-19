@@ -33,7 +33,7 @@ async function client(endpoint, data) {
 
   return axios.post(`${authURL}/${endpoint}`,JSON.stringify(data), config).then((response) => {
       if (response) {
-        return response.data;
+        return response.data["user"];
       } else {
         const error = {
           message: response?.errors?.map((e) => e.message).join("\n"),

@@ -2,13 +2,12 @@ package concensus
 
 import (
 	"fmt"
-	"net"
-	"path/filepath"
-
 	multierror "github.com/hashicorp/go-multierror"
 	template "github.com/hashicorp/go-sockaddr/template"
 	flag "github.com/ogier/pflag"
+	"net"
 	"os"
+	"path/filepath"
 )
 
 type RawConfig struct {

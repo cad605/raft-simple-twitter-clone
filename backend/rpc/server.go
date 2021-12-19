@@ -60,11 +60,11 @@ func (s *twitterServer) CreateUser(ctx context.Context, req *pb.User) (*pb.UserR
 	applyFuture := s.node.RaftNode.Apply(eventBytes, 5*time.Second)
 	if err := applyFuture.Error(); err != nil {
 		s.logger.Error().Err(err).Msg("Failed to create new user.")
-		return &pb.UserReply{Success: false}, nil
+		return &pb.UserReply{}, err
 	}
 
 	s.logger.Info().Str("event.createUser", "success").Msg("New user created")
-	return &pb.UserReply{Success: true}, nil
+	return &pb.UserReply{}, nil
 }
 
 func (s *twitterServer) LoginUser(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
@@ -90,13 +90,13 @@ func (s *twitterServer) LoginUser(ctx context.Context, req *pb.User) (*pb.UserRe
 	}
 
 	s.logger.Info().Str("event.login", "success").Msg("Logged in user.")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.UserReply{User: res}, nil
 }
 
-func (s *twitterServer) CreateTweet(ctx context.Context, req *pb.Tweet) (*pb.TweetReply, error) {
+func (s *twitterServer) CreateTweet(ctx context.Context, req *pb.Tweet) (*pb.TweetsReply, error) {
 
 	event := &concensus.Event{
-		Type:            "CreateTweet",
+		Type: "CreateTweet",
 		NewTweetRequest: req,
 	}
 
@@ -107,18 +107,18 @@ func (s *twitterServer) CreateTweet(ctx context.Context, req *pb.Tweet) (*pb.Twe
 
 	applyFuture := s.node.RaftNode.Apply(eventBytes, 5*time.Second)
 	if err := applyFuture.Error(); err != nil {
-		s.logger.Error().Err(err).Msg("Failed to marshal JSON in CreateUser")
-		return &pb.TweetReply{Success: false}, nil
+		s.logger.Error().Err(err).Msg("Failed to create new tweet.")
+		return &pb.TweetsReply{}, nil
 	}
 
 	s.logger.Info().Str("event.createTweet", "success").Msg("New tweet created.")
-	return &pb.TweetReply{Success: true}, nil
+	return &pb.TweetsReply{}, nil
 }
 
 func (s *twitterServer) FollowUser(ctx context.Context, req *pb.Follow) (*pb.FollowReply, error) {
 
 	event := &concensus.Event{
-		Type:             "FollowUser",
+		Type: "FollowUser",
 		NewFollowRequest: req,
 	}
 
@@ -140,7 +140,7 @@ func (s *twitterServer) FollowUser(ctx context.Context, req *pb.Follow) (*pb.Fol
 func (s *twitterServer) UnfollowUser(ctx context.Context, req *pb.Follow) (*pb.FollowReply, error) {
 
 	event := &concensus.Event{
-		Type:             "UnfollowUser",
+		Type: "UnfollowUser",
 		NewFollowRequest: req,
 	}
 
@@ -165,7 +165,7 @@ func (s *twitterServer) GetUser(ctx context.Context, req *pb.User) (*pb.UserRepl
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.UserReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -179,20 +179,20 @@ func (s *twitterServer) GetUser(ctx context.Context, req *pb.User) (*pb.UserRepl
 
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching user")
-		return &pb.UserReply{Success: false}, err
+		return &pb.UserReply{}, err
 	}
 
 	s.logger.Info().Str("event.getUser", "success").Msg("Fetched user successfully")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.UserReply{User: res}, nil
 }
 
-func (s *twitterServer) GetUsers(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+func (s *twitterServer) GetUsers(ctx context.Context, req *pb.User) (*pb.ManyUsersReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -206,20 +206,20 @@ func (s *twitterServer) GetUsers(ctx context.Context, req *pb.User) (*pb.UserRep
 
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching user")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 
 	s.logger.Info().Str("event.getUser", "success").Msg("Fetched user successfully")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.ManyUsersReply{Users: res}, nil
 }
 
-func (s *twitterServer) GetUsersNotFollowed(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+func (s *twitterServer) GetUsersNotFollowed(ctx context.Context, req *pb.User) (*pb.ManyUsersReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -233,20 +233,20 @@ func (s *twitterServer) GetUsersNotFollowed(ctx context.Context, req *pb.User) (
 
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching users not followed.")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 
 	s.logger.Info().Str("event.getUsersNotFollowed", "success").Msg("Fetched user successfully")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.ManyUsersReply{Users: res}, nil
 }
 
-func (s *twitterServer) GetTweetsByUser(ctx context.Context, req *pb.User) (*pb.TweetReply, error) {
+func (s *twitterServer) GetTweetsByUser(ctx context.Context, req *pb.User) (*pb.TweetsReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.TweetReply{Success: false}, err
+		return &pb.TweetsReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -260,20 +260,20 @@ func (s *twitterServer) GetTweetsByUser(ctx context.Context, req *pb.User) (*pb.
 
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching user tweets")
-		return &pb.TweetReply{Success: false}, err
+		return &pb.TweetsReply{}, err
 	}
 
 	s.logger.Info().Str("event.GetTweetsByUser", "success").Msg("Fetched user tweets successfully")
-	return &pb.TweetReply{Tweet: res, Success: true}, nil
+	return &pb.TweetsReply{Tweet: res}, nil
 }
 
-func (s *twitterServer) GetFeedByUser(ctx context.Context, req *pb.User) (*pb.TweetReply, error) {
+func (s *twitterServer) GetFeedByUser(ctx context.Context, req *pb.User) (*pb.TweetsReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.TweetReply{Success: false}, err
+		return &pb.TweetsReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -286,20 +286,20 @@ func (s *twitterServer) GetFeedByUser(ctx context.Context, req *pb.User) (*pb.Tw
 	res, err := s.node.FSM.DB.GetFeedByUser(conn, req)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching tweet feed")
-		return &pb.TweetReply{Success: false}, err
+		return &pb.TweetsReply{}, err
 	}
 
 	s.logger.Info().Str("event.GetFeedByUser", "success").Msg("Fetched user feed successfully")
-	return &pb.TweetReply{Tweet: res, Success: true}, nil
+	return &pb.TweetsReply{Tweet: res}, nil
 }
 
-func (s *twitterServer) GetFollowedByUser(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+func (s *twitterServer) GetFollowedByUser(ctx context.Context, req *pb.User) (*pb.ManyUsersReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -312,20 +312,20 @@ func (s *twitterServer) GetFollowedByUser(ctx context.Context, req *pb.User) (*p
 	res, err := s.node.FSM.DB.GetFollowedByUser(conn, req)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching followed by user")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 
 	s.logger.Info().Str("event.GetFollowedByUser", "success").Msg("Fetched followed by user successfully")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.ManyUsersReply{Users: res}, nil
 }
 
-func (s *twitterServer) GetFollowingByUser(ctx context.Context, req *pb.User) (*pb.UserReply, error) {
+func (s *twitterServer) GetFollowingByUser(ctx context.Context, req *pb.User) (*pb.ManyUsersReply, error) {
 	s.node.FSM.Mutex.Lock()
 	defer s.node.FSM.Mutex.Unlock()
 	conn, err := s.node.FSM.DB.RoDB.Conn(context.Background())
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error opening database connection")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 	defer func(conn *sql.Conn) {
 		err := conn.Close()
@@ -338,9 +338,9 @@ func (s *twitterServer) GetFollowingByUser(ctx context.Context, req *pb.User) (*
 	res, err := s.node.FSM.DB.GetFollowingByUser(conn, req)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error fetching following by user")
-		return &pb.UserReply{Success: false}, err
+		return &pb.ManyUsersReply{}, err
 	}
 
 	s.logger.Info().Str("event.GetFollowedByUser", "success").Msg("Fetched following by user successfully")
-	return &pb.UserReply{User: res, Success: true}, nil
+	return &pb.ManyUsersReply{Users: res}, nil
 }

@@ -1,0 +1,20 @@
+// Create a new user
+curl -d '{"fullname": "Alex", "password": "alex123", "handle": "@alex","bio": "Hey there!"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
+curl -d '{"fullname": "Lucy", "password": "lucy123", "handle": "@lucyinthesky","bio": "Excited to start tweeting..."}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/register
+
+// Create some tweets
+curl -d '{"Content": "Lets see what how this Raft holds up...","AuthorId": "3","AuthorName": "Alex","AuthorHandle": "@alext"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createTweet
+curl -d '{"Content": "My second tweet","AuthorId": "4","AuthorName": "Lucy","AuthorHandle": "@lucy"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/createTweet
+
+// Follow a user
+curl -d '{"FollowerId": "3","FollowedId": "2"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/followUser
+curl -d '{"FollowerId": "4","FollowedId": "1"}' -H "Content-Type: application/json" -X POST http://localhost:8080/api/v1/followUser
+
+
+
+
+
+
+
+
+

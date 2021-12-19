@@ -2,16 +2,33 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"log"
 	"net/http"
+	"os"
 	pb "simple-twitter.com/backend/rpc/proto"
 )
 
-var serverAddr = [3]string{"127.0.0.1:8000", "127.0.0.1:8001", "127.0.0.1:8002"}
+var serverAddr string = ""
 
 func main() {
+	// Read in a raft node configuration
+	rawConfig := getRawConfig()
+	config, err := resolveRawConfig(rawConfig)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Configuration errors - %s\n", err)
+		os.Exit(1)
+	}
+
+	serverAddr = config.RaftAddress.String()
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Configuration errors - %s\n", err)
+		os.Exit(1)
+	}
+
 	router := gin.Default()
 	router.Use(CORSMiddleware())
 	rg := router.Group("api/v1/")
@@ -33,7 +50,7 @@ func main() {
 		rg.GET("/getUsersNotFollowed/:id", getUsersNotFollowed)
 	}
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(config.ServerAddress.String()); err != nil {
 		log.Fatalf("could not run server: %v", err)
 		return
 	}
@@ -61,15 +78,9 @@ func postNewUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -90,7 +101,7 @@ func postNewUser(c *gin.Context) {
 		log.Fatalf("Failed to create new user: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -99,15 +110,9 @@ func postNewLogin(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -127,7 +132,7 @@ func postNewLogin(c *gin.Context) {
 		log.Fatalf("Failed to create new user: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -136,15 +141,9 @@ func postNewTweet(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -164,7 +163,7 @@ func postNewTweet(c *gin.Context) {
 		log.Fatalf("Failed to create new tweet: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -173,15 +172,9 @@ func postNewFollow(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -201,7 +194,7 @@ func postNewFollow(c *gin.Context) {
 		log.Fatalf("Failed to create new tweet: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -210,15 +203,9 @@ func postNewUnfollow(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -238,7 +225,7 @@ func postNewUnfollow(c *gin.Context) {
 		log.Fatalf("Failed to unfollow user: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -247,15 +234,9 @@ func getTweetsByUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -270,7 +251,7 @@ func getTweetsByUser(c *gin.Context) {
 		log.Fatalf("Failed to get user tweets: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -279,15 +260,9 @@ func getFeedByUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -302,7 +277,7 @@ func getFeedByUser(c *gin.Context) {
 		log.Fatalf("Failed to get feed: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -311,15 +286,9 @@ func getFollowedByUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -334,7 +303,7 @@ func getFollowedByUser(c *gin.Context) {
 		log.Fatalf("Failed to get followers: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -343,15 +312,9 @@ func getFollowingByUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -366,7 +329,7 @@ func getFollowingByUser(c *gin.Context) {
 		log.Fatalf("Failed to get following: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -375,15 +338,9 @@ func getUser(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -398,7 +355,7 @@ func getUser(c *gin.Context) {
 		log.Fatalf("Failed to get following: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -407,15 +364,9 @@ func getUsers(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -428,7 +379,7 @@ func getUsers(c *gin.Context) {
 		log.Fatalf("Failed to get following: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }
 
@@ -437,15 +388,9 @@ func getUsersNotFollowed(c *gin.Context) {
 	var conn *grpc.ClientConn
 	var err error
 	opts = append(opts, grpc.WithInsecure())
-	index := 0
-	for {
-		conn, err = grpc.Dial(serverAddr[index], opts...)
-		if err != nil || index == len(serverAddr) {
-			index++
-			log.Fatalf("fail to dial: %v", err)
-		} else {
-			break
-		}
+	conn, err = grpc.Dial(serverAddr, opts...)
+	if err != nil {
+		log.Fatalf("fail to dial: %v", err)
 	}
 	defer conn.Close()
 	client := pb.NewTwitterClient(conn)
@@ -460,6 +405,6 @@ func getUsersNotFollowed(c *gin.Context) {
 		log.Fatalf("Failed to get following: %v", e)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": res})
+	c.JSON(http.StatusOK, res)
 	return
 }

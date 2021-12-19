@@ -12,7 +12,6 @@ import { useAuth } from "../context/auth-context";
  */
 export default function UserFollowers() {
   const { user } = useAuth();
-  const API = "http://localhost:8080/api/v1/getFollowingByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -22,21 +21,19 @@ export default function UserFollowers() {
   const { status, results, error } = state;
 
   async function queryDatabase() {
-    const request = axios.get(API);
+    const url = "http://localhost:8080/api/v1";
+    const endpoint = "getFollowingByUser/" + user["id"];
 
-    return axios.all([request]).then(
-      axios.spread(async (...responses) => {
-        if (responses && responses[0]["data"]["data"]["success"]) {
-          console.log(responses[0]["data"]["data"]["user"]);
-          return responses[0]["data"]["data"]["user"];
-        } else {
-          const error = {
-            message: responses?.errors?.map((e) => e.message).join("\n"),
-          };
-          return Promise.reject(error);
-        }
-      })
-    );
+    return axios.get(`${url}/${endpoint}`).then((response) => {
+      if (response) {
+        return response.data["users"];
+      } else {
+        const error = {
+          message: response?.errors?.map((e) => e.message).join("\n"),
+        };
+        return Promise.reject(error);
+      }
+    });
   }
 
   async function handleFollow(userListItem) {
@@ -88,7 +85,7 @@ export default function UserFollowers() {
           {results && results.length > 0 ? (
             <List>
               {results.map((listItem) => (
-                <UserListItem key={listItem["id"]} user={listItem} isFollow={false} handleClick={handleFollow} />
+                <UserListItem key={listItem["id"]} user={listItem} showFollow={false} isFollow={false} handleClick={handleFollow} />
               ))}
             </List>
           ) : (

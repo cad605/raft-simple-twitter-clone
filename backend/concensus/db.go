@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"github.com/rqlite/go-sqlite3"
 	"io"
@@ -122,15 +121,20 @@ func (db *DB) CreateUser(conn *sql.Conn, newUser *pb.User) (res interface{}, err
 	}
 	defer statement.Close()
 
-	res, err = statement.Exec(newUser.Fullname, newUser.Password, newUser.Bio, newUser.Handle)
+	result, err := statement.Exec(newUser.Fullname, newUser.Password, newUser.Bio, newUser.Handle)
 	if err != nil {
-		return nil, err
+		return 0, fmt.Errorf("CreateUser: %v", err)
+	}
+
+	res, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("CreateUser: %v", err)
 	}
 
 	return res, nil
 }
 
-func (db *DB) LoginUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
+func (db *DB) LoginUser(conn *sql.Conn, user *pb.User) (res *pb.User, err error) {
 	sqlStatement := `
 		SELECT * FROM user
 		WHERE name = ? AND password = ?
@@ -142,28 +146,17 @@ func (db *DB) LoginUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err erro
 	}
 	defer statement.Close()
 
-	rows, err := statement.Query(user.Fullname, user.Password)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var user pb.User
-		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
-		if err != nil {
-			return nil, err
+	row := statement.QueryRow(user.Fullname, user.Password)
+
+	var loggedIn pb.User
+	if err := row.Scan(&loggedIn.Id, &loggedIn.Fullname, &loggedIn.Password, &loggedIn.Bio, &loggedIn.Handle, &loggedIn.CreatedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("LoginUser: no user with credentials: %s, %s", user.Fullname, user.Password)
 		}
-		res = append(res, &user)
-	}
-	err = rows.Err()
-
-	if err != nil {
-		return nil, err
+		return res, fmt.Errorf("LoginUser: %v", err)
 	}
 
-	if len(res) == 0 {
-		return nil, errors.New("INCORRECT USERNAME OR PASSWORD")
-	}
+	res = &loggedIn
 
 	return res, nil
 }
@@ -184,9 +177,15 @@ func (db *DB) CreateTweet(conn *sql.Conn, tweet *pb.Tweet) (res interface{}, err
 		return nil, err
 	}
 	defer statement.Close()
-	res, err = statement.Exec(tweet.Content, tweet.AuthorId, tweet.AuthorName, tweet.AuthorHandle)
+
+	result, err := statement.Exec(tweet.Content, tweet.AuthorId, tweet.AuthorName, tweet.AuthorHandle)
 	if err != nil {
-		return nil, err
+		return 0, fmt.Errorf("CreateUser: %v", err)
+	}
+
+	res, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("CreateUser: %v", err)
 	}
 
 	return res, nil
@@ -206,9 +205,14 @@ func (db *DB) FollowUser(conn *sql.Conn, newFollow *pb.Follow) (res interface{},
 		return nil, err
 	}
 	defer statement.Close()
-	res, err = statement.Exec(newFollow.FollowerId, newFollow.FollowedId)
+	result, err := statement.Exec(newFollow.FollowerId, newFollow.FollowedId)
 	if err != nil {
-		return nil, err
+		return 0, fmt.Errorf("CreateUser: %v", err)
+	}
+
+	res, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("CreateUser: %v", err)
 	}
 
 	return res, nil
@@ -227,15 +231,20 @@ func (db *DB) UnfollowUser(conn *sql.Conn, newUnfollow *pb.Follow) (res interfac
 		return nil, err
 	}
 	defer statement.Close()
-	res, err = statement.Exec(newUnfollow.FollowerId, newUnfollow.FollowedId)
+	result, err := statement.Exec(newUnfollow.FollowerId, newUnfollow.FollowedId)
 	if err != nil {
-		return nil, err
+		return 0, fmt.Errorf("CreateUser: %v", err)
+	}
+
+	res, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("CreateUser: %v", err)
 	}
 
 	return res, nil
 }
 
-func (db *DB) GetUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error) {
+func (db *DB) GetUser(conn *sql.Conn, user *pb.User) (res *pb.User, err error) {
 	sqlStatement := `
 		SELECT * FROM user
 		WHERE id = ?
@@ -246,24 +255,16 @@ func (db *DB) GetUser(conn *sql.Conn, user *pb.User) (res []*pb.User, err error)
 		return nil, err
 	}
 	defer statement.Close()
-	rows, err := statement.Query(user.Id)
-	if err != nil {
-		return nil, err
+	row := statement.QueryRow(user.Id)
+	var loggedIn pb.User
+	if err := row.Scan(&loggedIn.Id, &loggedIn.Fullname, &loggedIn.Password, &loggedIn.Bio, &loggedIn.Handle, &loggedIn.CreatedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("LoginUser: no user with credentials: %s, %s", user.Fullname, user.Password)
+		}
+		return res, fmt.Errorf("LoginUser: %v", err)
 	}
 
-	defer rows.Close()
-	for rows.Next() {
-		var user pb.User
-		err = rows.Scan(&user.Id, &user.Fullname, &user.Password, &user.Bio, &user.Handle, &user.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, &user)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
+	res = &loggedIn
 
 	return res, nil
 }
@@ -402,9 +403,8 @@ func (db *DB) GetFeedByUser(conn *sql.Conn, user *pb.User) (res []*pb.Tweet, err
 		}
 		res = append(res, &tweet)
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("GetFeedByUser %s: %v", user.Id, err)
 	}
 
 	return res, nil

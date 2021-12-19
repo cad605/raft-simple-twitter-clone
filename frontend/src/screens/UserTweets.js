@@ -8,7 +8,6 @@ import { useAuth } from "../context/auth-context";
 
 export default function UserTweets() {
   const { user } = useAuth();
-  const API = "http://localhost:8080/api/v1/getTweetsByUser/" + user["id"];
 
   const [state, setState] = useState({
     status: "pending",
@@ -18,21 +17,21 @@ export default function UserTweets() {
   const { status, results, error } = state;
 
   async function queryDatabase() {
-    const request = axios.get(API);
+    const url = "http://localhost:8080/api/v1";
+    const endpoint = "getTweetsByUser/" + user["id"];
 
-    return axios.all([request]).then(
-      axios.spread(async (...responses) => {
-        if (responses && responses[0]["data"]["data"]["success"]) {
-          return responses[0]["data"]["data"]["tweet"];
-        } else {
-          const error = {
-            message: responses?.errors?.map((e) => e.message).join("\n"),
-          };
-          return Promise.reject(error);
-        }
-      })
-    );
+    return axios.get(`${url}/${endpoint}`).then((response) => {
+      if (response) {
+        return response.data["tweet"];
+      } else {
+        const error = {
+          message: response?.errors?.map((e) => e.message).join("\n"),
+        };
+        return Promise.reject(error);
+      }
+    });
   }
+
   useEffect(() => {
     setState({ ...state, status: "pending" });
     queryDatabase().then(
