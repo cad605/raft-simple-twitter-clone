@@ -5,6 +5,7 @@
   "dependencies": {
     "@reach/tabs": "^0.16.4",
     "axios": "^0.24.0",
+    "nth-check": "^2.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-error-boundary": "^3.1.4",
