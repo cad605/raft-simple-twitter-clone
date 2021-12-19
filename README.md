@@ -2,6 +2,21 @@
 
 This is a simple Twitter clone that implements its distributed SQLite database using Hashicorp's implmentation of Raft.
 
+## Architecture Overview
+![Overview of the project architecture](TwitterArchitecture.png)
+
+1. The client, which is in the `frontend` directory, is a React Application. It sends and receives HTTP requests to the web server.
+2. The web server, found in the `api` directory and implemented using the `gin` framework, receives HTTP requests from the React frontend. It then forwards the request, using an RPC, to the Raft node it is pointing to. Note: Leader forwarding has not been implemented, and therefore if the node is not the leader data can only be queried.
+3. The Raft node accepts the requests from the webserver. If it is adding new data, it must reach a quorum, committ the logs, and replicate. The RPCs do not go through the Raft protocol for data queries (GET requests).
+4. Finally, the node reutrns the response to the server, which then forwards the data back to the client.
+
+## Libraries Used
+
+1. Hashicorp's Raft implementation - [hashicorp/raft] (https://github.com/hashicorp/raft)
+2. The gin web server framework - [gin-gonic/gin] (https://github.com/gin-gonic/gin)
+3. SQLite - [mattn/go-sqlite3] (https://github.com/mattn/go-sqlite3)
+4. gRPC - [grpc/grpc-go] (https://github.com/grpc/grpc-go)
+
 ## Setup
 
 To begin, clone the repo.
@@ -65,17 +80,3 @@ To run a three node cluser:
 5. For third node: `backend --http-port=8002 --raft-port=7002 --join="127.0.0.1:8000"`
 
 For subsequent nodes and other options: `backend [--data-dir=?] [--http-port=?] [--raft-port=?] [--join="?"]`
-
-## Architecture Overview
-![Overview of the project architecture](TwitterArchitecture.png)
-
-1. The client, which is in the `frontend` directory, is a React Application. It sends and receives HTTP requests to the web server.
-2. The web server, found in the `api` directory and implemented using the `gin` framework, receives HTTP requests from the React frontend. It then forwards the request, using an RPC, to the Raft node it is pointing to. Note: Leader forwarding has not been implemented, and therefore if the node is not the leader data can only be queried.
-3. The Raft node accepts the requests from the webserver. If it is adding new data, it must reach a quorum, committ the logs, and replicate. The RPCs do not go through the Raft protocol for data queries (GET requests).
-4. Finally, the node reutrns the response to the server, which then forwards the data back to the client.
-
-## Libraries Used
-
-1. Hashicorp's Raft implementation - [hashicorp/raft] (https://github.com/hashicorp/raft)
-2. The gin web server framework - [gin-gonic/gin] (https://github.com/gin-gonic/gin)
-3. SQLite - [mattn/go-sqlite3] https://github.com/mattn/go-sqlite3)
