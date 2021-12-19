@@ -1,18 +1,14 @@
 # Simple-Raft-Twitter
----
 
 ## Setup
----
 
 ### Frontend
----
 
 1. `cd frontend`
 2. `npm install`
 3. `npm run start`
 
 ### Web Server
----
 
 The default configuration is:
 
@@ -32,7 +28,6 @@ To run:
 3. `./api [--raft-address=?] [--raft-port=?] [server-port=?]`
 
 ### Backend (Raft)
----
 
 The default configuration is:
 
@@ -66,7 +61,6 @@ To run:
 For other options see configuration above.
 
 ## Architecture Overview
----
 ![Overview of the project architecture](TwitterArchitecture.png)
 
 1. The client, which is in the `frontend` directory, is a React Application. It sends and receives HTTP requests to the web server.
@@ -75,7 +69,6 @@ For other options see configuration above.
 4. Finally, the node reutrns the response to the server, which then forwards the data back to the client.
 
 ## Libraries Used
----
 
 1. Hashicorp's Raft implementation ([hashicorp/raft] (https://github.com/hashicorp/raft))
 2. The gin web server framework ([gin-gonic/gin] (https://github.com/gin-gonic/gin))
