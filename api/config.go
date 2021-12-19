@@ -94,7 +94,7 @@ func resolveRawConfig(rawConfig *rawConfig) (*config, error) {
 func getRawConfig() *rawConfig {
 	var config rawConfig
 
-	flag.StringVarP(&config.RaftAddress, "rafter-address", "r",
+	flag.StringVarP(&config.RaftAddress, "raft-address", "r",
 		"127.0.0.1", "IP Address on which to bind")
 
 	flag.IntVarP(&config.RaftPort, "raft-port", "b",
