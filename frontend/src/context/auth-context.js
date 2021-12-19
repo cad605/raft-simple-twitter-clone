@@ -24,6 +24,7 @@ function AuthProvider(props) {
     (form) => auth.login(form).then((user) => setUser(user["data"]["user"][0])),
     [setUser]
   );
+  
   const register = React.useCallback(
     (form) =>
       auth
@@ -33,6 +34,7 @@ function AuthProvider(props) {
         ),
     [setUser]
   );
+  
   const logout = React.useCallback(() => {
     auth.logout();
     setUser(null);

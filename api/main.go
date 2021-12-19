@@ -9,7 +9,7 @@ import (
 	pb "simple-twitter.com/backend/rpc/proto"
 )
 
-var serverAddr = [3]string{"127.0.0.1:8001", "127.0.0.1:8002"}
+var serverAddr = [3]string{"127.0.0.1:8000", "127.0.0.1:8001", "127.0.0.1:8002"}
 
 func main() {
 	router := gin.Default()
