@@ -1,6 +1,10 @@
-# Simple-Raft-Twitter
+# Raft: Simple Twitter Clone
+
+This is a simple Twitter clone that implements its distributed SQLite database using Hashicorp's implmentation of Raft.
 
 ## Setup
+
+To begin, clone the repo.
 
 ### Frontend
 
@@ -25,7 +29,9 @@ To run:
 
 1. `cd api`
 2. `go build`
-3. `./api [--raft-address=?] [--raft-port=?] [server-port=?]`
+3. `./api`
+
+With nondefault options: `./api [--raft-address=?] [--raft-port=?] [server-port=?]`
 
 ### Backend (Raft)
 
@@ -50,15 +56,15 @@ The default configuration is:
 		true, "Bootstrap the cluster with this node")
 
 
-To run:
+To run a three node cluser:
 
 1. `cd backend`
 2. `go build`
 3. For the first node: `./backend --http-port=8000 --raft-port=7000 --bootstrap`
 4. For second node: `backend --http-port=8001 --raft-port=7001 --join="127.0.0.1:8000"`
-5. For subsequent nodes: `backend [--http-port=?] [--raft-port=?] [--join="?"]`
+5. For third node: `backend --http-port=8002 --raft-port=7002 --join="127.0.0.1:8000"`
 
-For other options see configuration above.
+For subsequent nodes and other options: `backend [--data-dir=?] [--http-port=?] [--raft-port=?] [--join="?"]`
 
 ## Architecture Overview
 ![Overview of the project architecture](TwitterArchitecture.png)
@@ -70,6 +76,6 @@ For other options see configuration above.
 
 ## Libraries Used
 
-1. Hashicorp's Raft implementation ([hashicorp/raft] (https://github.com/hashicorp/raft))
-2. The gin web server framework ([gin-gonic/gin] (https://github.com/gin-gonic/gin))
-3. SQLite ([mattn/go-sqlite3] (https://github.com/mattn/go-sqlite3))
+1. Hashicorp's Raft implementation - [hashicorp/raft] (https://github.com/hashicorp/raft)
+2. The gin web server framework - [gin-gonic/gin] (https://github.com/gin-gonic/gin)
+3. SQLite - [mattn/go-sqlite3] https://github.com/mattn/go-sqlite3)
